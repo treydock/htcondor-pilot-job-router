@@ -1,0 +1,11 @@
+universe=vanilla
+use_x509userproxy = true
+executable=test.sh
+output=test.out
+error=test.err
+log=test.log
+#notification=never
+ShouldTransferFiles = YES
+WhenToTransferOutput = ON_EXIT
++HookKeyword = "PILOT"
+queue

@@ -1,0 +1,24 @@
+# grid-proxy-init -out ${HOME}/.x509up_${UID}
+# export X509_USER_PROXY=${HOME}/.x509up_${UID}
+#universe=vanilla
+universe=grid
+#grid_resource=gt5 ce01.brazos.tamu.edu/jobmanager-pbs
+#grid_resource=gt2 ce01.brazos.tamu.edu/jobmanager-slurm
+#grid_resource=gt5 ce01.brazos.tamu.edu:9619/htcondorce-slurm
+grid_resource=condor ce01.brazos.tamu.edu ce01.brazos.tamu.edu:9619
+#globus_rsl=(queue=hepx)(maxWalltime=5)(maxMemory=3900)
+globus_rsl=(queue=background-4g)(maxWalltime=5)(maxMemory=3900)
+#+maxMemory=4000
+#xcount=1
+#maxWallTime=10
+executable = test.sh
+#transfer_executable = false
+output = test.out
+error = test.err
+log = test.log
+ShouldTransferFiles = YES
+WhenToTransferOutput = ON_EXIT
+use_x509userproxy = true
+#+queue='grid'
++HookKeyword = "PILOT"
+queue
