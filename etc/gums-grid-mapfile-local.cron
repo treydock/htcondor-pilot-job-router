@@ -1,18 +1,1 @@
-#!/bin/bash
-
-CONFIG="/etc/default/htcondor-pilot-job-router.ini"
-
-if [ -f $CONFIG ]; then
-  GRID_MAPFILE=$(awk -F "=" '/grid_mapfile/ {print $2}' $CONFIG | tr -d ' ')
-
-  if [ -n "$GRID_MAPFILE" ]; then
-    GRID_MAPFILE="/etc/grid-security/grid-mapfile.local"
-  fi
-else
-  GRID_MAPFILE="/etc/grid-security/grid-mapfile.local"
-fi
-
-gums --host generateEmailMapfile --file $GRID_MAPFILE
-retval=$?
-
-exit $retval
+0 */6 * * * root [[ ! -f /usr/libexec/htcondor-pilot-job-router/gums-grid-mapfile-local ]] || /usr/libexec/htcondor-pilot-job-router/gums-grid-mapfile-local
