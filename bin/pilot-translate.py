@@ -119,7 +119,7 @@ def get_local_grid_map(dn, grid_mapfile):
 def get_pending_requests(data_file):
     data = {}
     if not os.path.isfile(data_file):
-        logger.debug("Pending job data file '%s' does not exist", data_file)
+        logger.error("Pending job data file '%s' does not exist", data_file)
         return None
     with open(data_file) as f:
         data = json.load(f)
@@ -129,8 +129,9 @@ def get_pending_requests(data_file):
 
 
 def mark_job_invalid(ad, jobid, reason):
-    logger.debug("Job=%s Invalid. Reason='%s', setting JobStatus=5.", jobid, reason)
+    logger.error("Job=%s Invalid. Reason='%s', setting JobStatus=5.", jobid, reason)
     ad["JobStatus"] = 5
+    ad["HoldReason"] = "Job invalid - %s" % reason
     print ad.printOld()
     return(SUCCESS)
 
