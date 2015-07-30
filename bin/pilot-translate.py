@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import logging
+import logging, logging.handlers
 import os, sys
 import shlex
 import json
@@ -19,8 +19,9 @@ DEFAULT_CONFIG = {
     "ignore_routes": "",
     "log_file": "/tmp/pilot-translate.log",
     "log_level": "INFO",
+    "syslog_facility": "local0",
 }
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("htcondor-pilot-job-router")
 
 
 def split_gridmap_line(value):
@@ -134,7 +135,7 @@ def mark_job_invalid(ad, jobid, reason):
     return(SUCCESS)
 
 
-def setup_log(level, logfile, debug):
+def setup_log(level, logfile, syslog_facility, debug):
     log_level = getattr(logging, level)
     logger.setLevel(log_level)
     logFormatter = logging.Formatter(fmt='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
@@ -143,10 +144,15 @@ def setup_log(level, logfile, debug):
     fileHandler.setFormatter(logFormatter)
     logger.addHandler(fileHandler)
 
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(logFormatter)
+    if syslog_facility != "None":
+        syslogHandler = logging.handlers.SysLogHandler(address="/dev/log", facility="local0") #getattr(logging.handlers.SysLogHandler.LOG_LOCAL0)
+        syslogFormatter = logging.Formatter(fmt='%(name)s: [%(levelname)s] %(message)s')
+        syslogHandler.setFormatter(syslogFormatter)
+        logger.addHandler(syslogHandler)
 
     if debug:
+        consoleHandler = logging.StreamHandler()
+        consoleHandler.setFormatter(logFormatter)
         logger.addHandler(consoleHandler)
 
 
@@ -164,6 +170,7 @@ def get_config():
     config["ignore_routes"] = filter(None, conf.get("hook", "ignore_routes").split(","))
     config["log_file"] = conf.get("hook", "log_file")
     config["log_level"] = conf.get("hook", "log_level")
+    config["syslog_facility"] = conf.get("hook", "syslog_facility")
 
     return config
 
@@ -180,7 +187,7 @@ def parse_opts():
 def main():
     opts = parse_opts()
     config = get_config()
-    setup_log(level=config["log_level"], logfile=config["log_file"], debug=opts.debug)
+    setup_log(level=config["log_level"], logfile=config["log_file"], syslog_facility=config["syslog_facility"], debug=opts.debug)
 
     route_ad = classad.ClassAd(sys.stdin.readline())
     logger.debug("Route Ad: %s", route_ad.__str__())
