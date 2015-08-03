@@ -191,7 +191,7 @@ def main():
     setup_log(level=config["log_level"], logfile=config["log_file"], syslog_facility=config["syslog_facility"], debug=opts.debug)
 
     route_ad = classad.ClassAd(sys.stdin.readline())
-    logger.debug("Route Ad: %s", route_ad.__str__())
+    #logger.debug("Route Ad: %s", route_ad.__str__())
     separator_line = sys.stdin.readline()
     try:
         assert separator_line == "------\n"
