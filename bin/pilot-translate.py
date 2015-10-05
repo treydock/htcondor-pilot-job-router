@@ -7,6 +7,9 @@ import json
 import ConfigParser
 import optparse
 import classad
+# Only needed for setuid hack
+#import subprocess
+#import pwd
 from distutils.version import StrictVersion
 
 SUCCESS = 0
@@ -88,6 +91,11 @@ def vanillaToGrid(ad, route_ad):
 
 
 def get_local_grid_map(dn, grid_mapfile):
+    '''
+    Get the user data from local grid-mapfile for a specific DN.
+
+    Value returned is a list with grid-mapfile DN, FQAN and username.
+    '''
     grid_mapfile = open(grid_mapfile, "r")
     grid_mapfile_lines = grid_mapfile.read().splitlines()
     grid_mapfile.close()
@@ -115,7 +123,6 @@ def get_local_grid_map(dn, grid_mapfile):
     return local_grid_map
 
 
-
 def get_pending_requests(data_file):
     data = {}
     if not os.path.isfile(data_file):
@@ -131,9 +138,11 @@ def get_pending_requests(data_file):
 def mark_job_invalid(ad, jobid, reason):
     logger.error("Job=%s Invalid. Reason='%s', setting JobStatus=5.", jobid, reason)
     ad["JobStatus"] = 5
+    ad["SITELocalUser"] = False
     ad["HoldReason"] = "Job invalid - %s" % reason
     print ad.printOld()
-    return(SUCCESS)
+    return(FAILURE)
+    #return(SUCCESS)
 
 
 def setup_log(level, logfile, syslog_facility, debug):
@@ -230,6 +239,16 @@ def main():
         logger.debug("Job=%s x509UserProxyFirstFQAN='%s' is not a pilot", jobid, ad.get("x509UserProxyFirstFQAN", "None"))
         pilot_job = False
 
+    # TEST
+    #if ad["Owner"] == "treydock":
+    #    logger.error("Job=%s Invalid. Reason='TEST', setting JobStatus=5.", jobid)
+    #    ad["JobStatus"] = 5
+    #    ad["SITELocalUser"] = False
+    #    ad["HoldReason"] = "Job invalid - TEST"
+    #    print ad.printOld()
+    #    return(SUCCESS)
+    # END TEST
+
     # If not a pilot then return unmodified ad
     if not pilot_job:
         logger.debug("Job=%s is not a pilot job, returning ad", jobid)
@@ -294,12 +313,38 @@ def main():
     else:
         new_environment = ad["environment"] + " USER_DN='%s'" % local_grid_map["dn"]
 
+    # Get location of spooled files and change ownership
+    #if "Iwd" in ad.keys():
+    #    iwd = ad["Iwd"]
+    #    if os.path.isdir(iwd):
+    #        _pwd = pwd.getpwnam(new_owner)
+    #        _uid = _pwd.pw_uid
+    #        _gid = _pwd.pw_gid
+    #        logger.debug("Modify permissions for Job=%s Set uid=%s gid=%s Iwd=%s", jobid, _uid, _gid, iwd)
+    #        chown_wrapper_cmd = [
+    #            os.path.join(os.path.dirname(os.path.realpath(__file__)), "chown_iwd"), str(_uid), str(_gid), iwd
+    #        ]
+    #        chown_wrapper_exit_code = subprocess.call(chown_wrapper_cmd)
+    #        if chown_wrapper_exit_code != 0:
+    #            return(mark_job_invalid(ad=ad, jobid=jobid, reason="chown wrapper failed with exit code %s" % chown_wrapper_exit_code))
+
+    # Hack to replace arguments with values we can use
+    #if "Arguments" in ad.keys():
+    #    job_arguments = ad["Arguments"]
+    #    if "-param_GLIDEIN_Glexec_Use OPTIONAL" in job_arguments:
+    #        new_job_arguments = job_arguments.replace("-param_GLIDEIN_Glexec_Use OPTIONAL", "-param_GLIDEIN_Glexec_Use NEVER")
+    #        logger.info("Update Job=%s set Arguments='%s'", jobid, new_job_arguments)
+    #        ad["Arguments"] = new_job_arguments
+
+    # Define remote_cerequirements to pass to submit script
+
     # Set new ad values
     logger.info("Update Job=%s set Owner=%s", jobid, new_owner)
     logger.info("Update Job=%s set Environment=\"%s\"", jobid, new_environment)
     ad["owner"] = new_owner
     ad["environment"] = new_environment
 
+    #logger.debug("Route Ad:\n%s", route_ad.__str__())
     #logger.debug("Class Ad:\n%s", ad.printOld())
     print ad.printOld()
     return(SUCCESS)

@@ -21,7 +21,7 @@ fi
   [[ "x$CONDOR_INSTALL" == "xsystem" ]] || export PYTHONPATH=$CONDOR_INSTALL/lib/python:$PYTHONPATH
   [[ -d `dirname $USER_REQUESTS_JSON` ]] || mkdir `dirname $USER_REQUESTS_JSON`
 
-  /usr/libexec/htcondor-pilot-job-router/get_user_requests.py 2>/dev/null 1>$USER_REQUESTS_JSON
+  /usr/libexec/htcondor-pilot-job-router/get_user_requests.py --pool vocms099.cern.ch,vocms0115.cern.ch 2>/dev/null 1>$USER_REQUESTS_JSON
 
 ) 200>$LOCK_FILE
 retval=$?

@@ -1,1 +1,1 @@
-0,30 * * * * root [[ ! -f /usr/libexec/htcondor-pilot-job-router/get-cms-user-requests ]] || /usr/libexec/htcondor-pilot-job-router/get-cms-user-requests
+*/10 * * * * root [[ ! -f /usr/libexec/htcondor-pilot-job-router/get-cms-user-requests ]] || /usr/libexec/htcondor-pilot-job-router/get-cms-user-requests
